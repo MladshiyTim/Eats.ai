@@ -15,4 +15,4 @@ COPY . /app
 
 RUN python manage.py collectstatic --noinput
 
-CMD python manage.py migrate && gunicorn healthai.wsgi:application --bind 0.0.0.0:${PORT:-8000}
+CMD ["sh", "-c", "python manage.py migrate && if [ -n \"$DJANGO_SUPERUSER_USERNAME\" ] && [ -n \"$DJANGO_SUPERUSER_PASSWORD\" ]; then python manage.py createsuperuser --noinput --username \"$DJANGO_SUPERUSER_USERNAME\" --email \"${DJANGO_SUPERUSER_EMAIL:-admin@example.com}\" || true; fi && gunicorn healthai.wsgi:application --bind 0.0.0.0:${PORT:-8000}"]

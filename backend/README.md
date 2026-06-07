@@ -330,8 +330,8 @@ Superuser bilan kiring va barcha ma'lumotlarni boshqaring.
 
 Loyiha Railway uchun tayyorlangan:
 
-- repo rootdan deploy qilsangiz: `railway.json` va `nixpacks.toml` backendni avtomatik ishga tushiradi
-- faqat `backend/` papkasini root directory qilsangiz: `backend/railway.json` va `backend/Procfile` ishlaydi
+- repo rootdan deploy qilsangiz: root `Dockerfile` backendni avtomatik ishga tushiradi
+- faqat `backend/` papkasini root directory qilsangiz: `backend/Dockerfile` ishlaydi
 
 Railway variables:
 
@@ -341,6 +341,9 @@ DEBUG=False
 GEMINI_API_KEY=AIza-...
 GEMINI_BASE_URL=https://generativelanguage.googleapis.com/v1beta
 GEMINI_MODEL=gemini-3.5-flash
+DJANGO_SUPERUSER_USERNAME=Timur
+DJANGO_SUPERUSER_EMAIL=timur@example.com
+DJANGO_SUPERUSER_PASSWORD=your-admin-password
 ```
 
 PostgreSQL ishlatish uchun Railway’da Postgres service qo‘shing. Railway `DATABASE_URL`ni avtomatik beradi va backend shu URLdan foydalanadi.
@@ -365,7 +368,7 @@ SECURE_HSTS_SECONDS=31536000
 Docker deploy start command image ichida avtomatik bajariladi:
 
 ```bash
-python manage.py migrate && gunicorn healthai.wsgi:application --bind 0.0.0.0:${PORT:-8000}
+python manage.py migrate && createsuperuser-if-env-is-set && gunicorn healthai.wsgi:application --bind 0.0.0.0:${PORT:-8000}
 ```
 
 ---
