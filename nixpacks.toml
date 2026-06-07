@@ -8,4 +8,4 @@ cmds = ["pip install -r backend/requirements.txt"]
 cmds = ["cd backend && python manage.py collectstatic --noinput"]
 
 [start]
-cmd = "cd backend && gunicorn healthai.wsgi:application --bind 0.0.0.0:$PORT"
+cmd = "cd backend && gunicorn healthai.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --graceful-timeout 30"

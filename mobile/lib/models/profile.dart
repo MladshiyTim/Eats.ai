@@ -41,15 +41,15 @@ class Profile {
 
   factory Profile.fromJson(Map<String, dynamic> json) {
     return Profile(
-      id: json['id'] as int?,
+      id: _parseInt(json['id']),
       fullName: json['full_name'] as String?,
-      age: json['age'] as int?,
+      age: _parseInt(json['age']),
       gender: json['gender'] as String?,
       heightCm: _parseDouble(json['height_cm']),
       weightKg: _parseDouble(json['weight_kg']),
       targetWeightKg: _parseDouble(json['target_weight_kg']),
       workType: json['work_type'] as String?,
-      workHoursPerDay: json['work_hours_per_day'] as int?,
+      workHoursPerDay: _parseInt(json['work_hours_per_day']),
       sleepHoursPerDay: _parseDouble(json['sleep_hours_per_day']),
       activityLevel: json['activity_level'] as String?,
       doesSport: json['does_sport'] as bool?,
@@ -129,5 +129,15 @@ double? _parseDouble(dynamic value) {
   if (value is double) return value;
   if (value is int) return value.toDouble();
   if (value is String) return double.tryParse(value);
+  return null;
+}
+
+/// Safely parses an int that the backend may serialize as a double
+/// (e.g. FloatField values like `8.0`) or a string.
+int? _parseInt(dynamic value) {
+  if (value == null) return null;
+  if (value is int) return value;
+  if (value is double) return value.round();
+  if (value is String) return int.tryParse(value);
   return null;
 }

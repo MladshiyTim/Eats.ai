@@ -31,7 +31,7 @@ class DailyLog {
         weightKg: _parseDouble(json['weight_kg']),
         waterLiters: _parseDouble(json['water_liters']),
         sleepHours: _parseDouble(json['sleep_hours']),
-        caloriesConsumed: json['calories_consumed'] as int?,
+        caloriesConsumed: _parseInt(json['calories_consumed']),
         mealsFollowed: json['meals_followed'] as bool?,
         workoutDone: json['workout_done'] as bool?,
         waterTargetMet: json['water_target_met'] as bool?,
@@ -84,5 +84,14 @@ double? _parseDouble(dynamic value) {
   if (value is double) return value;
   if (value is int) return value.toDouble();
   if (value is String) return double.tryParse(value);
+  return null;
+}
+
+/// Safely parses an int that the backend may serialize as a double or string.
+int? _parseInt(dynamic value) {
+  if (value == null) return null;
+  if (value is int) return value;
+  if (value is double) return value.round();
+  if (value is String) return int.tryParse(value);
   return null;
 }

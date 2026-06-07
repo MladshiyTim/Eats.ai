@@ -259,7 +259,7 @@ def generate_diet_plan(profile, duration_days: int) -> dict:
         'GEMINI_BASE_URL',
         'https://generativelanguage.googleapis.com/v1beta',
     ).rstrip('/')
-    model = os.environ.get('GEMINI_MODEL', 'gemini-3.5-flash')
+    model = os.environ.get('GEMINI_MODEL', 'gemini-2.0-flash')
 
     bmr = _calculate_bmr(profile)
     tdee = _calculate_tdee(profile)
@@ -297,11 +297,15 @@ def generate_diet_plan(profile, duration_days: int) -> dict:
             },
         }
 
+        # Keep this strictly below gunicorn's --timeout so a slow Gemini call
+        # raises requests.Timeout (caught below → fallback plan) instead of
+        # gunicorn SIGABRT-ing the worker, which would raise SystemExit and
+        # bypass the fallback.
         response = requests.post(
             f'{base_url}/models/{model}:generateContent',
             headers=headers,
             json=payload,
-            timeout=120,
+            timeout=(10, 60),
         )
         response.raise_for_status()
 

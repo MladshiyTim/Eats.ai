@@ -39,8 +39,8 @@ class DietPlan {
         : _parseBackendMealPlan(rawMealPlan);
 
     return DietPlan(
-      id: json['id'] as int,
-      userId: json['user'] as int? ?? json['user_id'] as int? ?? 0,
+      id: _parseInt(json['id']) ?? 0,
+      userId: _parseInt(json['user']) ?? _parseInt(json['user_id']) ?? 0,
       status: json['status'] as String? ?? 'ready',
       durationDays: json['duration_days'] as int? ?? 0,
       caloriesPerDay: _parseInt(json['calories_per_day'] ?? json['daily_calories']),
@@ -89,8 +89,8 @@ class DayPlan {
   factory DayPlan.fromJson(Map<String, dynamic> json) {
     final rawMeals = json['meals'] as List<dynamic>? ?? [];
     return DayPlan(
-      id: json['id'] as int,
-      dayNumber: json['day_number'] as int,
+      id: _parseInt(json['id']) ?? 0,
+      dayNumber: _parseInt(json['day_number']) ?? 0,
       meals: rawMeals.map((m) => Meal.fromJson(m as Map<String, dynamic>)).toList(),
       notes: json['notes'] as String?,
     );
@@ -163,11 +163,11 @@ class Meal {
   });
 
   factory Meal.fromJson(Map<String, dynamic> json) => Meal(
-        id: json['id'] as int,
+        id: _parseInt(json['id']) ?? 0,
         mealType: json['meal_type'] as String? ?? 'lunch',
-        name: json['name'] as String,
+        name: json['name'] as String? ?? '',
         description: json['description'] as String?,
-        calories: json['calories'] as int?,
+        calories: _parseInt(json['calories']),
         proteinG: _parseDouble(json['protein_g']),
         carbsG: _parseDouble(json['carbs_g']),
         fatG: _parseDouble(json['fat_g']),
