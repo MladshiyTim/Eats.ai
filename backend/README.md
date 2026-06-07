@@ -115,6 +115,28 @@ curl -X POST http://localhost:8000/api/auth/refresh/ \
 
 ---
 
+### API hujjatlari
+
+Swagger UI:
+
+```text
+http://localhost:8000/api/docs/
+```
+
+OpenAPI schema:
+
+```text
+http://localhost:8000/api/schema/
+```
+
+Railway deploydan keyin:
+
+```text
+https://eatsai-production.up.railway.app/api/docs/
+```
+
+---
+
 ### Joriy foydalanuvchi ma'lumoti
 
 ```bash
