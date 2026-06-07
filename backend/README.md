@@ -340,16 +340,10 @@ SECURE_SSL_REDIRECT=True
 SECURE_HSTS_SECONDS=31536000
 ```
 
-Start command:
+Docker deploy start command image ichida avtomatik bajariladi:
 
 ```bash
-gunicorn healthai.wsgi:application --bind 0.0.0.0:$PORT
-```
-
-Release command:
-
-```bash
-python manage.py migrate
+python manage.py migrate && gunicorn healthai.wsgi:application --bind 0.0.0.0:${PORT:-8000}
 ```
 
 ---
