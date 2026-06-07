@@ -26,6 +26,8 @@ class _PlanTabState extends State<PlanTab> {
     _loadPlan();
   }
 
+  bool _confirming = false;
+
   Future<void> _loadPlan() async {
     setState(() {
       _isLoading = true;
@@ -41,6 +43,28 @@ class _PlanTabState extends State<PlanTab> {
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _confirmPlan() async {
+    setState(() => _confirming = true);
+    try {
+      await _dietService.confirmPlan();
+      await _loadPlan();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Reja tasdiqlandi! Endi har kuni rioya qiling 💪')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceFirst(
+              RegExp(r'^ApiException\(\d+\): '), ''))),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _confirming = false);
     }
   }
 
@@ -154,6 +178,57 @@ class _PlanTabState extends State<PlanTab> {
       child: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         children: [
+          // Confirmation banner — shown until the user accepts the plan
+          if (!plan.confirmed)
+            Card(
+              color: scheme.primaryContainer,
+              margin: const EdgeInsets.only(bottom: 8),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.verified_outlined, color: scheme.primary),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Rejani tasdiqlang',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Tasdiqlagach, ilova sizni har kuni rejaga rioya qilishga '
+                      'undaydi: ovqat, suv va mashg\'ulotni belgilang.',
+                      style: TextStyle(color: scheme.onPrimaryContainer),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: _confirming ? null : _confirmPlan,
+                        icon: _confirming
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.check),
+                        label: const Text('Tasdiqlash va boshlash'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
           // Macros summary card
           SectionCard(
             title: 'Kunlik norma',

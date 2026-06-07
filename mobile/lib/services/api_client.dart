@@ -172,7 +172,9 @@ class ApiClient {
     // Extract error message from backend response
     String message = 'Noma\'lum xato (${response.statusCode})';
     if (decoded is Map) {
-      if (decoded['detail'] != null) {
+      if (decoded['error'] != null) {
+        message = decoded['error'].toString();
+      } else if (decoded['detail'] != null) {
         message = decoded['detail'].toString();
       } else if (decoded['non_field_errors'] != null) {
         final errors = decoded['non_field_errors'];
@@ -207,6 +209,44 @@ class ApiClient {
       _request('PATCH', path, body: body);
 
   Future<dynamic> delete(String path) => _request('DELETE', path);
+
+  /// Uploads a file via multipart/form-data (e.g. a food photo).
+  /// Refreshes the access token once on 401, mirroring [_request].
+  Future<dynamic> postMultipartFile(
+    String path, {
+    required String filePath,
+    String fileField = 'image',
+    Map<String, String>? fields,
+    bool isRetry = false,
+  }) async {
+    final token = await _getAccessToken();
+    final request = http.MultipartRequest('POST', _uri(path));
+    request.headers['Accept'] = 'application/json';
+    if (token != null) request.headers['Authorization'] = 'Bearer $token';
+    if (fields != null) request.fields.addAll(fields);
+    request.files.add(await http.MultipartFile.fromPath(fileField, filePath));
+
+    http.Response response;
+    try {
+      final streamed = await _httpClient.send(request);
+      response = await http.Response.fromStream(streamed);
+    } on SocketException {
+      throw const ApiException(
+          statusCode: 0, message: 'Tarmoq xatosi: serverga ulanib bo\'lmadi');
+    }
+
+    if (response.statusCode == 401 && !isRetry) {
+      await _refreshAccessToken();
+      return postMultipartFile(
+        path,
+        filePath: filePath,
+        fileField: fileField,
+        fields: fields,
+        isRetry: true,
+      );
+    }
+    return _parseResponse(response);
+  }
 
   /// POST without auth headers — used for login/register endpoints.
   Future<dynamic> postPublic(String path, Map<String, dynamic> body) async {

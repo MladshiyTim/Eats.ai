@@ -1,4 +1,5 @@
 import '../models/diet_plan.dart';
+import '../models/daily_status.dart';
 import 'api_client.dart';
 
 /// Manages diet plan retrieval and AI generation.
@@ -38,6 +39,22 @@ class DietService {
   Future<DietPlan> getPlan(int id) async {
     final plans = await listPlans();
     return plans.firstWhere((plan) => plan.id == id);
+  }
+
+  /// Confirms (accepts) the active plan; strict daily enforcement begins.
+  Future<DietPlan> confirmPlan({int? wakeHour, int? sleepHour}) async {
+    final body = <String, dynamic>{};
+    if (wakeHour != null) body['wake_hour'] = wakeHour;
+    if (sleepHour != null) body['sleep_hour'] = sleepHour;
+    final data = await _client.post('/diet-plan/confirm/', body)
+        as Map<String, dynamic>;
+    return DietPlan.fromJson(data);
+  }
+
+  /// Fetches today's enforcement status (drives the hard-forcing gate).
+  Future<DailyStatus> getDailyStatus() async {
+    final data = await _client.get('/daily-status/') as Map<String, dynamic>;
+    return DailyStatus.fromJson(data);
   }
 
   /// Fetches weekly stats summary from the backend.

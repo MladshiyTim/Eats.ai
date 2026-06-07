@@ -11,6 +11,7 @@ class DietPlan {
   final double? fatG;
   final String? sportRecommendation;
   final String? generalAdvice;
+  final bool confirmed;
   final List<DayPlan> days;
   final DateTime? createdAt;
 
@@ -25,6 +26,7 @@ class DietPlan {
     this.fatG,
     this.sportRecommendation,
     this.generalAdvice,
+    this.confirmed = false,
     this.days = const [],
     this.createdAt,
   });
@@ -49,6 +51,7 @@ class DietPlan {
       fatG: _parseDouble(json['fat_g'] ?? json['daily_fat_g']),
       sportRecommendation: json['sport_recommendation'] as String?,
       generalAdvice: json['general_advice'] as String?,
+      confirmed: json['confirmed'] as bool? ?? false,
       days: days,
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'] as String)

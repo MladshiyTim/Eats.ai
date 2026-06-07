@@ -68,12 +68,14 @@ class DietPlanSerializer(serializers.ModelSerializer):
             'id', 'user', 'duration_days', 'start_date', 'end_date',
             'daily_calories', 'daily_protein_g', 'daily_carbs_g', 'daily_fat_g',
             'daily_water_liters', 'meal_plan', 'sport_recommendation',
-            'general_advice', 'is_active', 'created_at',
+            'general_advice', 'is_active', 'confirmed', 'confirmed_at',
+            'wake_hour', 'sleep_hour', 'created_at',
         ]
         read_only_fields = [
             'id', 'user', 'start_date', 'end_date', 'daily_calories',
             'daily_protein_g', 'daily_carbs_g', 'daily_fat_g', 'daily_water_liters',
-            'meal_plan', 'sport_recommendation', 'general_advice', 'created_at',
+            'meal_plan', 'sport_recommendation', 'general_advice', 'confirmed',
+            'confirmed_at', 'created_at',
         ]
 
 
