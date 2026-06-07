@@ -7,7 +7,7 @@
 ///                        e.g. http://192.168.1.42:8000/api
 ///
 /// Change [apiBaseUrl] before building/running on a real device.
-const String apiBaseUrl = 'http://10.0.2.2:8000/api';
+const String apiBaseUrl = 'https://eatsai-production.up.railway.app/api';
 
 /// App display name shown in the UI.
 const String appName = 'AI Salomatlik';

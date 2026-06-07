@@ -40,6 +40,9 @@ flutter pub get
 `lib/config.dart` faylini oching va `apiBaseUrl` konstantasini o'zgartiring:
 
 ```dart
+// Production backend:
+const String apiBaseUrl = 'https://eatsai-production.up.railway.app/api';
+
 // Android emulyator uchun (standart):
 const String apiBaseUrl = 'http://10.0.2.2:8000/api';
 
