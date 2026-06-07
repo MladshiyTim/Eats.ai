@@ -10,7 +10,7 @@
         Remove this flag and switch to HTTPS for production builds.
     -->
     <application
-        android:label="AI Salomatlik"
+        android:label="Eats AI"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher"

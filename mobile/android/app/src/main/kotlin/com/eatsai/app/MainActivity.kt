@@ -1,4 +1,4 @@
-package com.example.ai_salomatlik
+package com.eatsai.app
 
 import io.flutter.embedding.android.FlutterActivity
 
