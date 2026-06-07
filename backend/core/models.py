@@ -73,6 +73,13 @@ class DietPlan(models.Model):
     sport_recommendation = models.TextField(blank=True, default='')
     general_advice = models.TextField(blank=True, default='')
     is_active = models.BooleanField(default=True)
+    # User must explicitly confirm (accept) the plan before strict daily
+    # enforcement kicks in.
+    confirmed = models.BooleanField(default=False)
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+    # Daily window (local hours) used to distribute water/meal reminders.
+    wake_hour = models.IntegerField(default=7)
+    sleep_hour = models.IntegerField(default=23)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -111,3 +118,82 @@ class DailyLog(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - Log ({self.date})"
+
+
+class FoodLog(models.Model):
+    """A single food item the user ate, recognized from a photo via AI
+    (or entered manually). Counts toward the day's consumed calories."""
+
+    MEAL_CHOICES = [
+        ('breakfast', 'Breakfast'),
+        ('lunch', 'Lunch'),
+        ('dinner', 'Dinner'),
+        ('snack', 'Snack'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='food_logs')
+    date = models.DateField()
+    meal_type = models.CharField(max_length=10, choices=MEAL_CHOICES, default='snack')
+    name = models.CharField(max_length=255, default='')
+    calories = models.IntegerField(default=0)
+    protein_g = models.FloatField(default=0)
+    carbs_g = models.FloatField(default=0)
+    fat_g = models.FloatField(default=0)
+    portion_note = models.CharField(max_length=255, blank=True, default='')
+    # True if calories were estimated by the AI vision model from a photo.
+    recognized = models.BooleanField(default=True)
+    confidence = models.FloatField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Food Log'
+        verbose_name_plural = 'Food Logs'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.name} ({self.calories} kcal)"
+
+
+class DeviceToken(models.Model):
+    """An FCM device registration token used to deliver push notifications."""
+
+    PLATFORM_CHOICES = [
+        ('android', 'Android'),
+        ('ios', 'iOS'),
+        ('web', 'Web'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='devices')
+    token = models.CharField(max_length=512, unique=True)
+    platform = models.CharField(max_length=10, choices=PLATFORM_CHOICES, default='android')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Device Token'
+        verbose_name_plural = 'Device Tokens'
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.platform} device"
+
+
+class ReminderLog(models.Model):
+    """Records each reminder push sent so the scheduler never double-sends
+    the same slot to the same user on the same day."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reminder_logs')
+    date = models.DateField()
+    # Slot key, e.g. 'water_3' or 'meal_lunch'.
+    slot = models.CharField(max_length=40)
+    sent_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Reminder Log'
+        verbose_name_plural = 'Reminder Logs'
+        unique_together = ('user', 'date', 'slot')
+        ordering = ['-sent_at']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.slot} ({self.date})"

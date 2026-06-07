@@ -5,6 +5,7 @@ Falls back to computed plan if API is unavailable or key is missing.
 
 import os
 import json
+import base64
 import requests
 from typing import TYPE_CHECKING
 
@@ -345,3 +346,106 @@ def generate_diet_plan(profile, duration_days: int) -> dict:
     except Exception:
         # Any failure → fallback
         return _build_fallback_plan(profile, duration_days)
+
+
+# ─── Food photo → calories (Gemini Vision) ─────────────────────────────────────
+
+_FOOD_VISION_PROMPT = (
+    "Siz oziq-ovqat va kaloriya tahlili bo'yicha mutaxassissiz. "
+    "Rasмdagi taomni aniqlang va taxminiy oziqaviy qiymatini hisoblang. "
+    "Rasmda bir nechta taom bo'lsa, ularning umumiy yig'indisini bering. "
+    "Porsiya hajmini ko'rinishidan taxmin qiling. "
+    "Agar rasmda taom umuman bo'lmasa, is_food=false qiling.\n\n"
+    "Faqat quyidagi JSON formatida javob bering (boshqa matn yo'q):\n"
+    "{\n"
+    '  "is_food": <true|false>,\n'
+    '  "name": "<taom nomi, o\'zbek tilida>",\n'
+    '  "calories": <int, jami kkal>,\n'
+    '  "protein_g": <number>,\n'
+    '  "carbs_g": <number>,\n'
+    '  "fat_g": <number>,\n'
+    '  "portion_note": "<porsiya tavsifi, masalan: 1 kosa, ~300g>",\n'
+    '  "confidence": <0.0-1.0 oraligida ishonch darajasi>\n'
+    "}"
+)
+
+
+def analyze_food_image(image_bytes: bytes, mime_type: str = 'image/jpeg') -> dict:
+    """
+    Analyze a food photo with Gemini Vision and estimate its nutrition.
+
+    Returns a dict:
+        {is_food, name, calories, protein_g, carbs_g, fat_g, portion_note,
+         confidence, error?}
+
+    On any failure returns {'is_food': False, 'error': <reason>} so the caller
+    can surface a friendly message instead of crashing.
+    """
+    api_key = os.environ.get('GEMINI_API_KEY', '').strip()
+    base_url = os.environ.get(
+        'GEMINI_BASE_URL',
+        'https://generativelanguage.googleapis.com/v1beta',
+    ).rstrip('/')
+    model = os.environ.get('GEMINI_VISION_MODEL', os.environ.get('GEMINI_MODEL', 'gemini-2.0-flash'))
+
+    if not api_key:
+        return {'is_food': False, 'error': 'AI xizmati sozlanmagan (API kalit yo\'q).'}
+
+    try:
+        encoded = base64.b64encode(image_bytes).decode('ascii')
+        headers = {
+            'x-goog-api-key': api_key,
+            'Content-Type': 'application/json',
+        }
+        payload = {
+            'contents': [
+                {
+                    'role': 'user',
+                    'parts': [
+                        {'text': _FOOD_VISION_PROMPT},
+                        {'inline_data': {'mime_type': mime_type, 'data': encoded}},
+                    ],
+                },
+            ],
+            'generationConfig': {
+                'temperature': 0.2,
+                'maxOutputTokens': 1024,
+                'responseMimeType': 'application/json',
+            },
+        }
+
+        response = requests.post(
+            f'{base_url}/models/{model}:generateContent',
+            headers=headers,
+            json=payload,
+            timeout=(10, 60),
+        )
+        response.raise_for_status()
+
+        data = response.json()
+        parts = data['candidates'][0]['content']['parts']
+        content = ''.join(part.get('text', '') for part in parts).strip()
+
+        if content.startswith('```'):
+            lines = content.split('\n')
+            lines = lines[1:-1] if lines[-1] == '```' else lines[1:]
+            content = '\n'.join(lines)
+
+        result = json.loads(content)
+
+        if not result.get('is_food', False):
+            return {'is_food': False, 'error': 'Rasmda taom aniqlanmadi.'}
+
+        return {
+            'is_food': True,
+            'name': str(result.get('name', 'Aniqlanmagan taom'))[:255],
+            'calories': int(round(float(result.get('calories', 0) or 0))),
+            'protein_g': float(result.get('protein_g', 0) or 0),
+            'carbs_g': float(result.get('carbs_g', 0) or 0),
+            'fat_g': float(result.get('fat_g', 0) or 0),
+            'portion_note': str(result.get('portion_note', ''))[:255],
+            'confidence': float(result.get('confidence', 0) or 0),
+        }
+
+    except Exception as exc:  # noqa: BLE001 — surface a friendly error
+        return {'is_food': False, 'error': f'Rasmni tahlil qilib bo\'lmadi: {exc}'}

@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
-from .models import UserProfile, DietPlan, DailyLog
+from .models import UserProfile, DietPlan, DailyLog, FoodLog, DeviceToken
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -86,3 +86,21 @@ class DailyLogSerializer(serializers.ModelSerializer):
             'notes', 'mood',
         ]
         read_only_fields = ['id', 'user']
+
+
+class FoodLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FoodLog
+        fields = [
+            'id', 'user', 'date', 'meal_type', 'name', 'calories',
+            'protein_g', 'carbs_g', 'fat_g', 'portion_note', 'recognized',
+            'confidence', 'created_at',
+        ]
+        read_only_fields = ['id', 'user', 'recognized', 'confidence', 'created_at']
+
+
+class DeviceTokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DeviceToken
+        fields = ['id', 'token', 'platform', 'is_active', 'updated_at']
+        read_only_fields = ['id', 'is_active', 'updated_at']
