@@ -151,7 +151,7 @@ class ProfileTab extends StatelessWidget {
                   label: const Text('Chiqish'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: scheme.error,
-                    side: BorderSide(color: scheme.error.withOpacity(0.5)),
+                    side: BorderSide(color: scheme.error.withValues(alpha: 0.5)),
                   ),
                 ),
 
@@ -226,13 +226,12 @@ class ProfileTab extends StatelessWidget {
             onPressed: () async {
               Navigator.of(ctx).pop();
               await context.read<AuthProvider>().logout();
+              if (!context.mounted) return;
               context.read<ProfileProvider>().clear();
-              if (context.mounted) {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  (_) => false,
-                );
-              }
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                (_) => false,
+              );
             },
             child: const Text('Chiqish'),
           ),

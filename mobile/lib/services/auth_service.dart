@@ -61,7 +61,7 @@ class AuthService {
     final refresh = (tokens?['refresh'] ?? data['refresh']) as String?;
 
     if (access == null || refresh == null) {
-      throw ApiException(
+      throw const ApiException(
         statusCode: 400,
         message: 'Server tokenlarni qaytarmadi',
       );

@@ -315,7 +315,7 @@ class _DurationChip extends StatelessWidget {
           border: Border.all(
             color: isSelected
                 ? scheme.primary
-                : scheme.outline.withOpacity(0.3),
+                : scheme.outline.withValues(alpha: 0.3),
           ),
         ),
         child: Text(

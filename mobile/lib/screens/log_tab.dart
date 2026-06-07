@@ -195,19 +195,19 @@ class _LogListTile extends StatelessWidget {
                               color: scheme.primary,
                             ),
                           if (log.mealsFollowed == true)
-                            _Dot(
+                            const _Dot(
                               icon: Icons.restaurant_outlined,
                               label: 'Taom',
                               color: Colors.green,
                             ),
                           if (log.workoutDone == true)
-                            _Dot(
+                            const _Dot(
                               icon: Icons.fitness_center_outlined,
                               label: 'Sport',
                               color: Colors.orange,
                             ),
                           if (log.waterTargetMet == true)
-                            _Dot(
+                            const _Dot(
                               icon: Icons.water_drop_outlined,
                               label: 'Suv',
                               color: Colors.blue,

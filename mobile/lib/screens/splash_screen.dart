@@ -82,7 +82,7 @@ class _SplashScreenState extends State<SplashScreen>
                 width: 96,
                 height: 96,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: const Icon(
@@ -104,7 +104,7 @@ class _SplashScreenState extends State<SplashScreen>
               Text(
                 'Sog\'lom hayot uchun aqlli yordamchi',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                     ),
               ),
               const SizedBox(height: 48),

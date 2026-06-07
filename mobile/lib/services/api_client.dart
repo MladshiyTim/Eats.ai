@@ -142,7 +142,7 @@ class ApiClient {
           throw ArgumentError('Unsupported HTTP method: $method');
       }
     } on SocketException {
-      throw ApiException(statusCode: 0, message: 'Tarmoq xatosi: serverga ulanib bo\'lmadi');
+      throw const ApiException(statusCode: 0, message: 'Tarmoq xatosi: serverga ulanib bo\'lmadi');
     }
 
     // Handle 401 — try to refresh once
@@ -220,7 +220,7 @@ class ApiClient {
         body: jsonEncode(body),
       );
     } on SocketException {
-      throw ApiException(statusCode: 0, message: 'Tarmoq xatosi: serverga ulanib bo\'lmadi');
+      throw const ApiException(statusCode: 0, message: 'Tarmoq xatosi: serverga ulanib bo\'lmadi');
     }
     return _parseResponse(response);
   }

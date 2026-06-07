@@ -426,9 +426,11 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
     return RadioListTile<String>(
       title: Text(label),
       value: value,
+      // ignore: deprecated_member_use
       groupValue: _gender,
       contentPadding: EdgeInsets.zero,
       dense: true,
+      // ignore: deprecated_member_use
       onChanged: (v) => setState(() => _gender = v),
     );
   }
