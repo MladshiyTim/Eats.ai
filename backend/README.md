@@ -368,7 +368,7 @@ SECURE_HSTS_SECONDS=31536000
 Docker deploy start command image ichida avtomatik bajariladi:
 
 ```bash
-python manage.py migrate && createsuperuser-if-env-is-set && gunicorn healthai.wsgi:application --bind 0.0.0.0:${PORT:-8000}
+python manage.py migrate && python manage.py ensure_superuser && gunicorn healthai.wsgi:application --bind 0.0.0.0:${PORT:-8000}
 ```
 
 ---
