@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "616085955890",
+    "project_id": "eatsai-ecc64",
+    "storage_bucket": "eatsai-ecc64.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:616085955890:android:7111a179f2523ba0a7632b",
+        "android_client_info": {
+          "package_name": "com.zynytra.eatsai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCzYTlvPHqdaPyqWXSJ4vxSsu6t0Ze0mEE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

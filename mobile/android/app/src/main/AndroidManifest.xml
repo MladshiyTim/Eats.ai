@@ -34,6 +34,10 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <!-- FCM: default channel for background/killed-app notifications -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="eats_ai_reminders" />
         <!-- Used by Flutter tool to generate GeneratedPluginRegistrant -->
         <meta-data
             android:name="flutterEmbedding"

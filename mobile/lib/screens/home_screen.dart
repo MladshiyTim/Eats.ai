@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../providers/profile_provider.dart';
 import '../services/diet_service.dart';
+import '../services/push_service.dart';
 import 'daily_gate_screen.dart';
 import 'dashboard_tab.dart';
 import 'food_camera_screen.dart';
@@ -41,6 +42,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProfileProvider>().loadProfile();
       _checkGate();
+      // Register for push reminders now that we're authenticated.
+      PushService.instance.init();
     });
   }
 

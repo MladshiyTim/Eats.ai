@@ -1,3 +1,5 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -5,10 +7,16 @@ import 'config.dart';
 import 'providers/auth_provider.dart';
 import 'providers/profile_provider.dart';
 import 'screens/splash_screen.dart';
+import 'services/push_service.dart';
 import 'theme.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Firebase is optional at runtime — never block app start if it fails.
+  try {
+    await Firebase.initializeApp();
+    FirebaseMessaging.onBackgroundMessage(firebaseBackgroundHandler);
+  } catch (_) {}
   runApp(const AISalomatlikApp());
 }
 
