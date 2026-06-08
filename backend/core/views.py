@@ -692,6 +692,7 @@ class TriggerRemindersView(APIView):
         if not self._authorized(request):
             return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
         from .reminders import dispatch_due_reminders
+        from . import fcm_service
         try:
             count = dispatch_due_reminders()
         except Exception as exc:  # noqa: BLE001 — surface config errors to the caller
@@ -699,7 +700,10 @@ class TriggerRemindersView(APIView):
                 {'dispatched': 0, 'error': f'{type(exc).__name__}: {exc}'},
                 status=status.HTTP_200_OK,
             )
-        return Response({'dispatched': count})
+        return Response({
+            'dispatched': count,
+            'fcm_configured': fcm_service.is_configured(),
+        })
 
     def get(self, request):
         # Allow GET so simple cron services / uptime pingers can trigger it.
