@@ -1,3 +1,4 @@
+import os
 from datetime import date, timedelta
 
 from django.contrib.auth.models import User
@@ -669,3 +670,31 @@ class DailyStatusView(APIView):
                 else 'Bugungi vazifalaringizni yakunlang.'
             ),
         })
+
+
+# ─── Cron trigger (external scheduler) ──────────────────────────────────────────
+
+
+class TriggerRemindersView(APIView):
+    """HTTP endpoint an external cron service can hit to dispatch due
+    reminders. Protected by a shared secret (CRON_SECRET env), passed either
+    as ?key=... or the X-Cron-Key header."""
+    permission_classes = [AllowAny]
+
+    def _authorized(self, request):
+        secret = os.environ.get('CRON_SECRET', '').strip()
+        if not secret:
+            return False
+        provided = request.query_params.get('key') or request.headers.get('X-Cron-Key', '')
+        return provided == secret
+
+    def post(self, request):
+        if not self._authorized(request):
+            return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        from .reminders import dispatch_due_reminders
+        count = dispatch_due_reminders()
+        return Response({'dispatched': count})
+
+    def get(self, request):
+        # Allow GET so simple cron services / uptime pingers can trigger it.
+        return self.post(request)

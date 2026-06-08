@@ -19,6 +19,7 @@ from .views import (
     FoodLogDetailView,
     DeviceRegisterView,
     DailyStatusView,
+    TriggerRemindersView,
 )
 
 urlpatterns = [
@@ -52,6 +53,9 @@ urlpatterns = [
 
     # Daily enforcement status
     path('daily-status/', DailyStatusView.as_view(), name='daily-status'),
+
+    # Cron trigger (external scheduler hits this URL with ?key=CRON_SECRET)
+    path('cron/send-reminders/', TriggerRemindersView.as_view(), name='cron-send-reminders'),
 
     # Stats
     path('stats/', StatsView.as_view(), name='stats'),
