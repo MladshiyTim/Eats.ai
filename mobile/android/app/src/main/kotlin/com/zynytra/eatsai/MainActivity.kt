@@ -1,4 +1,4 @@
-package com.eatsai.app
+package com.zynytra.eatsai
 
 import io.flutter.embedding.android.FlutterActivity
 

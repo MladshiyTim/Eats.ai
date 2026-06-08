@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.eatsai.app"
+    namespace = "com.zynytra.eatsai"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -20,7 +20,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.eatsai.app"
+        applicationId = "com.zynytra.eatsai"
         // Minimum SDK 21 — required by flutter_secure_storage and most modern Flutter plugins.
         minSdkVersion = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
