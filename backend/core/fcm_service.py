@@ -51,9 +51,15 @@ def _load_credentials():
         if not info:
             return None, None
 
-        creds = service_account.Credentials.from_service_account_info(
-            info, scopes=[_FCM_SCOPE]
-        )
+        try:
+            creds = service_account.Credentials.from_service_account_info(
+                info, scopes=[_FCM_SCOPE]
+            )
+        except Exception:
+            # Malformed / incomplete service-account JSON — treat as unconfigured
+            # rather than crashing the caller.
+            return None, None
+
         _credentials = creds
         _project_id = os.environ.get('FIREBASE_PROJECT_ID') or info.get('project_id')
         return _credentials, _project_id
