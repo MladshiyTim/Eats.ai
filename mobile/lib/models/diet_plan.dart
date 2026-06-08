@@ -9,6 +9,7 @@ class DietPlan {
   final double? proteinG;
   final double? carbsG;
   final double? fatG;
+  final double? waterLitersPerDay;
   final String? sportRecommendation;
   final String? generalAdvice;
   final bool confirmed;
@@ -24,6 +25,7 @@ class DietPlan {
     this.proteinG,
     this.carbsG,
     this.fatG,
+    this.waterLitersPerDay,
     this.sportRecommendation,
     this.generalAdvice,
     this.confirmed = false,
@@ -49,6 +51,8 @@ class DietPlan {
       proteinG: _parseDouble(json['protein_g'] ?? json['daily_protein_g']),
       carbsG: _parseDouble(json['carbs_g'] ?? json['daily_carbs_g']),
       fatG: _parseDouble(json['fat_g'] ?? json['daily_fat_g']),
+      waterLitersPerDay:
+          _parseDouble(json['water_liters_per_day'] ?? json['daily_water_liters']),
       sportRecommendation: json['sport_recommendation'] as String?,
       generalAdvice: json['general_advice'] as String?,
       confirmed: json['confirmed'] as bool? ?? false,

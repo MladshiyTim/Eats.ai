@@ -28,9 +28,16 @@ class _DashboardTabState extends State<DashboardTab> {
   Map<String, dynamic> _weeklyStats = {};
   bool _hasActivePlan = false;
   int? _activePlanDays;
+  double _waterTarget = 0;
   bool _isLoadingLog = true;
   bool _isSavingWeight = false;
   bool _isLoadingPlan = true;
+  bool _isAddingWater = false;
+
+  String _todayStr() {
+    final d = DateTime.now();
+    return '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+  }
 
   @override
   void initState() {
@@ -76,6 +83,7 @@ class _DashboardTabState extends State<DashboardTab> {
         setState(() {
           _hasActivePlan = plan != null && plan.isReady;
           _activePlanDays = plan?.durationDays;
+          _waterTarget = plan?.waterLitersPerDay ?? 0;
           _isLoadingPlan = false;
         });
       }
@@ -130,6 +138,115 @@ class _DashboardTabState extends State<DashboardTab> {
     } finally {
       if (mounted) setState(() => _isSavingWeight = false);
     }
+  }
+
+  /// Adds water with an optimistic UI update so the counter advances instantly,
+  /// then persists and reverts on failure.
+  Future<void> _addWater(double liters) async {
+    final current = _todayLog?.waterLiters ?? 0;
+    final next = double.parse((current + liters).toStringAsFixed(2));
+    final met = _waterTarget > 0 && next >= _waterTarget;
+
+    setState(() {
+      _isAddingWater = true;
+      _todayLog = (_todayLog ?? DailyLog(date: _todayStr())).copyWith(
+        date: _todayStr(),
+        waterLiters: next,
+        waterTargetMet: met,
+      );
+    });
+
+    try {
+      final saved = await _logService.upsertLog(DailyLog(
+        date: _todayStr(),
+        waterLiters: next,
+        waterTargetMet: met,
+      ));
+      if (mounted) setState(() => _todayLog = saved);
+    } catch (e) {
+      // Revert optimistic change on failure.
+      if (mounted) {
+        setState(() => _todayLog = _todayLog?.copyWith(waterLiters: current));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceFirst(
+              RegExp(r'^ApiException\(\d+\): '), ''))),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isAddingWater = false);
+    }
+  }
+
+  Widget _buildWaterCard(ColorScheme scheme) {
+    final water = _todayLog?.waterLiters ?? 0;
+    final progress = _waterTarget > 0 ? (water / _waterTarget).clamp(0.0, 1.0) : 0.0;
+    final met = water >= _waterTarget && _waterTarget > 0;
+    final remaining = (_waterTarget - water).clamp(0.0, _waterTarget);
+
+    return SectionCard(
+      title: 'Suv ichish',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Icon(Icons.water_drop, color: Colors.blue.shade400, size: 28),
+              const SizedBox(width: 8),
+              Text(
+                '${water.toStringAsFixed(2)} ',
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+              ),
+              Text(
+                '/ ${_waterTarget.toStringAsFixed(1)} L',
+                style: TextStyle(fontSize: 15, color: scheme.onSurfaceVariant),
+              ),
+              const Spacer(),
+              if (met)
+                const Text('✅ Bajarildi',
+                    style: TextStyle(fontWeight: FontWeight.w600, color: Colors.green)),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 10,
+              backgroundColor: scheme.surfaceContainerHighest,
+              color: Colors.blue.shade400,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            met
+                ? 'Bugungi suv normangizni bajardingiz! 💪'
+                : 'Yana ${remaining.toStringAsFixed(2)} L qoldi — bir stakan iching.',
+            style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton.tonalIcon(
+                  onPressed: (_isAddingWater || met) ? null : () => _addWater(0.25),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('250 ml'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: FilledButton.tonalIcon(
+                  onPressed: (_isAddingWater || met) ? null : () => _addWater(0.5),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('500 ml'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -229,6 +346,9 @@ class _DashboardTabState extends State<DashboardTab> {
                       ],
                     ),
             ),
+
+            // Water tracker card
+            if (_waterTarget > 0) _buildWaterCard(scheme),
 
             // Weight input card
             SectionCard(

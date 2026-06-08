@@ -147,7 +147,7 @@ class GenerateDietPlanView(APIView):
         # Deactivate previous plans
         DietPlan.objects.filter(user=request.user, is_active=True).update(is_active=False)
 
-        today = date.today()
+        today = timezone.localdate()
         diet_plan = DietPlan.objects.create(
             user=request.user,
             duration_days=duration_days,
@@ -218,7 +218,7 @@ class DailyLogListView(APIView):
 
     def post(self, request):
         """Create or update (upsert) a daily log for a given date."""
-        log_date = request.data.get('date', str(date.today()))
+        log_date = request.data.get('date', str(timezone.localdate()))
 
         try:
             log = DailyLog.objects.get(user=request.user, date=log_date)
@@ -236,7 +236,7 @@ class TodayLogView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        today = date.today()
+        today = timezone.localdate()
         log, created = DailyLog.objects.get_or_create(
             user=request.user,
             date=today,
@@ -297,7 +297,7 @@ class StatsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        today = date.today()
+        today = timezone.localdate()
         thirty_days_ago = today - timedelta(days=30)
         seven_days_ago = today - timedelta(days=7)
 
@@ -473,7 +473,7 @@ class FoodPhotoAnalyzeView(APIView):
         if meal_type not in dict(FoodLog.MEAL_CHOICES):
             meal_type = 'snack'
 
-        today = date.today()
+        today = timezone.localdate()
         food = FoodLog.objects.create(
             user=request.user,
             date=today,
@@ -607,7 +607,7 @@ class DailyStatusView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        today = date.today()
+        today = timezone.localdate()
 
         try:
             plan = DietPlan.objects.get(user=request.user, is_active=True)
@@ -646,10 +646,14 @@ class DailyStatusView(APIView):
         if not workout_done:
             actions.append('workout')
 
+        # Water is a soft, time-based nudge (drink throughout the day) — it must
+        # not hard-lock the app. Only food + workout keep the gate up.
+        hard_actions = [a for a in actions if a != 'drink_water']
+
         return Response({
             'has_plan': True,
             'plan_confirmed': True,
-            'locked': len(actions) > 0,
+            'locked': len(hard_actions) > 0,
             'actions_required': actions,
             'streak': _compute_streak(request.user, today),
             'targets': {
